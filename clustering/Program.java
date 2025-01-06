@@ -7,7 +7,7 @@ import java.io.IOException;
 public class Program {
     
     public static void run(int numRuns, int numClusters, String inputFilename,
-                String clusterPointDataFileName, int numOfPointsInFile) throws FileNotFoundException, IOException {
+                String clusterPointDataFileName, int numOfPointsInFile, String varianceFile) throws FileNotFoundException, IOException {
 
         Point[] dataset = DataUtilities.readCsvDataset(inputFilename, numOfPointsInFile);
         double bestRun = Double.MAX_VALUE; 
@@ -25,7 +25,7 @@ public class Program {
             }
         }
         DataUtilities.storeData(bestClusters, clusterPointDataFileName);
-        //DataUtilities.storeClusterTotalVariance(numClusters, bestRun, clusterPointDataFileName);
+        DataUtilities.storeClusterTotalVariance(numClusters, bestRun, varianceFile);
         
     }
 
@@ -41,10 +41,11 @@ public class Program {
             "best_10_clusters.csv",
             "best_12_clusters.csv"
         };
-        
+
+        String VARIANCE_FILENAME = "clusters_variance.csv";
         int[] numberOfClusters = {4,6,8,10,12};
         for (int i = 0; i < numberOfClusters.length; i++) {
-            run(NUM_RUNS, numberOfClusters[i], FILENAME, "output\\clustering\\"+outputFileNames[i], NUM_OF_POINTS);
+            run(NUM_RUNS, numberOfClusters[i], FILENAME, "output\\clustering\\"+outputFileNames[i], NUM_OF_POINTS, "output\\clustering\\"+VARIANCE_FILENAME);
         }
     }
 }

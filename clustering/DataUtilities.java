@@ -2,6 +2,7 @@ package clustering;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
@@ -28,9 +29,10 @@ public class DataUtilities {
 
     public static void storeData(Cluster[] data, String filepath) throws IOException {
         BufferedWriter bw = new BufferedWriter(new FileWriter(filepath));
+        bw.write("x1,x2,cluster_id,c_x1,c_x2\n");
         for (Cluster c: data) {
             for (Point p: c.points) {
-                String point = p.x1 + "," +p.x2 + "," + c.clusterId + "," +c.centroid.x1+","+c.centroid.x2;
+                String point = p.x1 + "," +p.x2 + "," +c.clusterId+","+c.centroid.x1+","+c.centroid.x2;
                 bw.write(point);
                 bw.write('\n');
             }
@@ -38,9 +40,18 @@ public class DataUtilities {
         bw.close();
     }
 
+
+
     public static void storeClusterTotalVariance(int numberOfClusters, double variance, String filepath) throws IOException {
-        BufferedWriter bw = new BufferedWriter(new FileWriter(filepath));
-        bw.append(numberOfClusters+","+variance);
+        BufferedWriter bw = new BufferedWriter(new FileWriter(filepath, true));
+        File file = new File(filepath);
+
+        if (!file.exists()) {
+            bw.write("number_of_clusters,total_variance\n");
+        }
+
+        
+        bw.append(numberOfClusters+","+variance+"\n");
         bw.close();
     }
 }
