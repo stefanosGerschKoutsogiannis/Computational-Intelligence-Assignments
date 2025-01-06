@@ -2,8 +2,6 @@ package clustering;
 
 public class Kmeans {  
 
-    private final double MAX_ITERATIONS = 100;
-
     int numClusters;
     Cluster[] clusters;
     Point[] dataset;
@@ -19,9 +17,16 @@ public class Kmeans {
     public Cluster[] runKMeans() {
         createAndInitializeClusters();
         boolean check = true;
+        Point[] oldCentroids = new Point[this.numClusters];
         
         do {
             this.iterations++;
+
+            if (iterations > 1) {
+                for (int i = 0; i < this.numClusters; i++) {
+                    oldCentroids[i] = this.clusters[i].centroid;
+                }
+            }
 
             for (Cluster c : this.clusters) {
                 c.points.clear();
@@ -35,14 +40,8 @@ public class Kmeans {
                 calculateNewCentroid(c);
             }
 
-            Point[] oldCentroids = new Point[this.numClusters];
-            if (iterations > 1) {
-                for (int i = 0; i < this.numClusters; i++) {
-                    oldCentroids[i] = this.clusters[i].centroid;
-                }
-                check = checkForTermination(this.clusters, oldCentroids);
-            }
-        } while (check && this.iterations<MAX_ITERATIONS);
+            check = checkForTermination(this.clusters, oldCentroids);
+        } while (check);
 
 
         printStats();
@@ -90,15 +89,20 @@ public class Kmeans {
             sumX1 += p.x1;
             sumX2 += p.x2;
         }
-        c.centroid = new Point(sumX1/c.points.size(), sumX2/c.points.size());
+        Point newCentroid = new Point(sumX1/c.points.size(), sumX2/c.points.size());
+        c.centroid = newCentroid;
     } 
 
    
     private boolean checkForTermination(Cluster[] newCentroids, Point[] oldCentroids) {
+        if (this.iterations == 1) {
+            return true;
+        }
+
         Point[] centroids = new Point[this.numClusters];
         for (int i = 0; i < this.numClusters; i++) {
             centroids[i] = newCentroids[i].centroid;
-            if (calculateEuclideanDistance(centroids[i], oldCentroids[i]) > 0.001) {
+            if (calculateEuclideanDistance(centroids[i], oldCentroids[i]) < 0.0001) {
                 return false;
             }
         }

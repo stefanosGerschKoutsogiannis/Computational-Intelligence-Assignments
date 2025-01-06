@@ -14,7 +14,7 @@ public class Test {
     public static void main(String[] args) throws FileNotFoundException, IOException {
 
         Point[] dataset = DataUtilities.readCsvDataset("data\\clustering\\clustering_dataset.csv", 1000);
-        Kmeans km = new Kmeans(10, dataset);
+        Kmeans km = new Kmeans(2, dataset);
 
 
         km.runKMeans();
