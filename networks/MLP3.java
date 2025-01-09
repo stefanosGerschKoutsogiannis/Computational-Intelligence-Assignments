@@ -1,9 +1,9 @@
 package networks;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Random;
 
 public class MLP3 {
@@ -16,10 +16,15 @@ public class MLP3 {
     private static final String ACTIVATION_FUNCTION_H1_H2 = "tanh"; 
     private static final String ACTIVATION_FUNCTION_H3 = "tanh";
 
+    private static final String FILEPATH = "output\\networks\\prediction_results_3_layers.csv";
+
     private int inputSize, hidden1Size, hidden2Size, hidden3Size, outputSize;
     private double[][] weights1, weights2, weights3, weights4; 
     private double[] biases1, biases2, biases3, biases4;       
     private double learningRate;
+    private String activationH1;
+    private String activationH2;
+    private String activationH3;
 
     public MLP3(double learningRate) {
         this.inputSize = INPUT_SIZE;
@@ -28,6 +33,32 @@ public class MLP3 {
         this.hidden3Size = HIDDEN3_SIZE; 
         this.outputSize = OUTPUT_SIZE;
         this.learningRate = learningRate;
+        this.activationH1 = ACTIVATION_FUNCTION_H1_H2;
+        this.activationH2 = ACTIVATION_FUNCTION_H1_H2;
+        this.activationH3 = ACTIVATION_FUNCTION_H3;
+
+        // Initialize weights and biases
+        this.weights1 = initializeWeights(hidden1Size, inputSize);
+        this.biases1 = initializeBiases(hidden1Size);
+        this.weights2 = initializeWeights(hidden2Size, hidden1Size);
+        this.biases2 = initializeBiases(hidden2Size);
+        this.weights3 = initializeWeights(hidden3Size, hidden2Size); 
+        this.biases3 = initializeBiases(hidden3Size);
+        this.weights4 = initializeWeights(outputSize, hidden3Size);  
+        this.biases4 = initializeBiases(outputSize);
+    }
+
+    public MLP3(double learningRate, int hidden1Size, int hidden2Size, int hidden3Size,
+            String activationH1, String activationH2, String activationH3) {
+        this.inputSize = INPUT_SIZE;
+        this.hidden1Size = hidden1Size;
+        this.hidden2Size = hidden2Size;
+        this.hidden3Size = hidden3Size; 
+        this.outputSize = OUTPUT_SIZE;
+        this.learningRate = learningRate;
+        this.activationH1 = activationH1;
+        this.activationH2 = activationH2;
+        this.activationH3 = activationH3;
 
         // Initialize weights and biases
         this.weights1 = initializeWeights(hidden1Size, inputSize);
@@ -77,9 +108,9 @@ public class MLP3 {
     }
 
     public double[] forward(double[] input) {
-        double[] hidden1 = activate(layerOutput(weights1, input, biases1), ACTIVATION_FUNCTION_H1_H2);
-        double[] hidden2 = activate(layerOutput(weights2, hidden1, biases2), ACTIVATION_FUNCTION_H1_H2);
-        double[] hidden3 = activate(layerOutput(weights3, hidden2, biases3), ACTIVATION_FUNCTION_H3); // New layer
+        double[] hidden1 = activate(layerOutput(weights1, input, biases1), this.activationH1);
+        double[] hidden2 = activate(layerOutput(weights2, hidden1, biases2), this.activationH2);
+        double[] hidden3 = activate(layerOutput(weights3, hidden2, biases3), this.activationH3); // New layer
         double[] output = activate(layerOutput(weights4, hidden3, biases4), "relu");
         return output;
     }
@@ -125,11 +156,11 @@ public class MLP3 {
 
             // Forward pass
             double[] hidden1output = layerOutput(weights1, input, biases1);
-            double[] hidden1 = activate(hidden1output, ACTIVATION_FUNCTION_H1_H2);
+            double[] hidden1 = activate(hidden1output, this.activationH1);
             double[] hidden2output = layerOutput(weights2, hidden1, biases2);
-            double[] hidden2 = activate(hidden2output,  ACTIVATION_FUNCTION_H1_H2);
+            double[] hidden2 = activate(hidden2output,  this.activationH2);
             double[] hidden3output = layerOutput(weights3, hidden2, biases3);
-            double[] hidden3 = activate(hidden3output, ACTIVATION_FUNCTION_H3); // New layer
+            double[] hidden3 = activate(hidden3output, this.activationH3); 
             double[] outputTotal = layerOutput(weights4, hidden3, biases4);
             double[] output = activate(outputTotal, "relu");
 
@@ -145,7 +176,7 @@ public class MLP3 {
             double[] hidden1Errors = new double[hidden1Size];
 
             for (int i = 0; i < hidden3Size; i++) {
-                double derivative = ACTIVATION_FUNCTION_H3.equals("tanh") ? tanhDerivative(hidden3output[i]) : reluDerivative(hidden3output[i]);
+                double derivative = this.activationH3.equals("tanh") ? tanhDerivative(hidden3output[i]) : reluDerivative(hidden3output[i]);
                 for (int j = 0; j < outputSize; j++) {
                     hidden3Errors[i] += weights4[j][i] * outputErrors[j];
                 }
@@ -153,7 +184,7 @@ public class MLP3 {
             }
 
             for (int i = 0; i < hidden2Size; i++) {
-                double derivative = ACTIVATION_FUNCTION_H1_H2.equals("tanh") ? tanhDerivative(hidden2output[i]) : reluDerivative(hidden2output[i]);
+                double derivative = this.activationH2.equals("tanh") ? tanhDerivative(hidden2output[i]) : reluDerivative(hidden2output[i]);
                 for (int j = 0; j < hidden3Size; j++) {
                     hidden2Errors[i] += weights3[j][i] * hidden3Errors[j];
                 }
@@ -161,7 +192,7 @@ public class MLP3 {
             }
 
             for (int i = 0; i < hidden1Size; i++) {
-                double derivative = ACTIVATION_FUNCTION_H1_H2.equals("tanh") ? tanhDerivative(hidden1output[i]) : reluDerivative(hidden1output[i]);
+                double derivative = this.activationH1.equals("tanh") ? tanhDerivative(hidden1output[i]) : reluDerivative(hidden1output[i]);
                 for (int j = 0; j < hidden2Size; j++) {
                     hidden1Errors[i] += weights2[j][i] * hidden2Errors[j];
                 }
@@ -200,7 +231,7 @@ public class MLP3 {
         }
     }
 
-    public void train(double[][] data, double[][] labels, int batchSize, double threshold) {
+    public void train(double[][] data, double[][] labels, int batchSize, double threshold, int show) {
         double previousEpochLoss = Double.MAX_VALUE; 
         int minEpochs = 800;
         int epoch = 1;
@@ -228,8 +259,9 @@ public class MLP3 {
             // mean loss for this epoch
             epochLoss /= 2;
     
-            // Εprint epoch - loss
-            System.out.printf("Epoch %d, Loss: %.6f%n", epoch, epochLoss);
+            if (show == 1) {
+                System.out.printf("Epoch %d, Loss: %.6f%n", epoch, epochLoss);
+            }
 
             if (epoch >= minEpochs && Math.abs(previousEpochLoss - epochLoss) < threshold) {
                 System.out.println("Training stopped early due to small loss difference.");
@@ -243,57 +275,24 @@ public class MLP3 {
 
     public static void main(String[] args) {
         try {
-            double[][] trainData = loadCSV("data\\networks\\classification_train.csv");
-            double[][] testData = loadCSV("data\\networks\\classification_test.csv");
-            double[][] trainFeatures = extractFeatures(trainData);
-            double[][] trainLabels = extractLabels(trainData);
-            double[][] testFeatures = extractFeatures(testData);
-            double[][] testLabels = extractLabels(testData);
+            double[][] trainData = DataUtilities.loadCSV("data\\networks\\classification_train.csv");
+            double[][] testData = DataUtilities.loadCSV("data\\networks\\classification_test.csv");
+            double[][] trainFeatures = DataUtilities.extractFeatures(trainData);
+            double[][] trainLabels = DataUtilities.extractLabels(trainData);
+            double[][] testFeatures = DataUtilities.extractFeatures(testData);
+            double[][] testLabels = DataUtilities.extractLabels(testData);
 
             MLP3 mlp3 = new MLP3(0.01);
 
             int batchSize = 20;
             double threshold = 0.1;
-            mlp3.train(trainFeatures, trainLabels, batchSize, threshold);
+            mlp3.train(trainFeatures, trainLabels, batchSize, threshold, 1);
 
             evaluate(mlp3, testFeatures, testLabels);
+            evaluateModel(null, testFeatures, testLabels, FILEPATH);
         } catch (IOException e) {
             System.err.println("Error while loading the data " + e.getMessage());
         }
-    }
-
-    private static double[][] loadCSV(String filename) throws IOException {
-        ArrayList<double[]> data = new ArrayList<>();
-        try (BufferedReader br = new BufferedReader(new FileReader(filename))) {
-            String line;
-            while ((line = br.readLine()) != null) {
-                String[] parts = line.split(",");
-                double[] values = new double[parts.length];
-                for (int i = 0; i < parts.length; i++) {
-                    values[i] = Double.parseDouble(parts[i]);
-                }
-                data.add(values);
-            }
-        }
-        return data.toArray(new double[0][]);
-    }
-
-    private static double[][] extractFeatures(double[][] data) {
-        double[][] features = new double[data.length][data[0].length - 1];
-        for (int i = 0; i < data.length; i++) {
-            System.arraycopy(data[i], 0, features[i], 0, features[i].length);
-        }
-        return features;
-    }
-
-    private static double[][] extractLabels(double[][] data) {
-        int numClasses = 4; 
-        double[][] labels = new double[data.length][numClasses];
-        for (int i = 0; i < data.length; i++) {
-            int label = (int) data[i][data[i].length - 1];
-            labels[i][label] = 1.0; // One-hot encoding
-        }
-        return labels;
     }
 
     private static void evaluate(MLP3 mlp, double[][] features, double[][] labels) {
@@ -308,6 +307,33 @@ public class MLP3 {
         }
         double accuracy = (double) correct / features.length;
         System.out.printf("Accuracy at test set: %.2f%%%n", accuracy * 100);
+    }
+
+    private static double evaluateModel(MLP mlp, double[][] features, double[][] labels, String filepath) throws IOException {
+        int correct = 0;
+        File file = new File(filepath);
+        BufferedWriter bw = new BufferedWriter(new FileWriter(filepath, true));
+
+        if (!file.exists()) {
+            bw.write("x1,x2,correct\n");
+        }
+
+        for (int i = 0; i < features.length; i++) {
+            double[] prediction = mlp.forward(features[i]);
+            int predictedClass = argMax(prediction);
+            int trueClass = argMax(labels[i]);
+            if (predictedClass == trueClass) {
+                correct++;
+                DataUtilities.storeDatapoint(bw, features[i], 1);
+            } else {
+                DataUtilities.storeDatapoint(bw, features[i], 0);
+            }
+        }
+        double accuracy = (double) correct / features.length;
+        System.out.printf("Accuracy at test set: %.2f%%%n", accuracy * 100);
+                
+        bw.close();
+        return accuracy;
     }
 
     private static int argMax(double[] array) {

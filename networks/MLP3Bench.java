@@ -5,19 +5,13 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 
-/*
- * threshlold and learning rate set before
- * for NUM_RUMS=5 aproxx 1 hour of running
- * num_runs=2 approx 10 mimutes
- * 
- * probably wont use this
- */
 
-public class MLPBench {
+
+public class MLP3Bench {
 
     private static final double LEARNING_RATE = 0.1;
     private static final double THRESHOLD = 0.1;
-    private static final String FILEPATH = "output\\networks\\prediction_results_model2.csv";
+    private static final String FILEPATH = "output\\networks\\prediction_results_model3.csv";
     private static final int NUM_RUMS = 5;
 
     public static void main(String[] args) throws IOException {
@@ -40,22 +34,27 @@ public class MLPBench {
         int bestBatchSize = 0;
         int bestNumberOfNeuronsH1 = 0;
         int bestNumberOfNeuronsH2 = 0;
-        String bestActivationOnH2 = "";
+        int bestNumberOfNeuronsH3 = 0;
+        String bestActivationOnH3 = "";
 
         for (int batch : batchSize) {
             for (int neuronsH1 : numNeurons) {
                 for (int neuronsH2: numNeurons) {
-                    for (String activationH2 : activation) {
-                        bestAccuracySoFar = run(trainFeatures, trainLabels, testFeatures, testLabels, LEARNING_RATE, THRESHOLD,
-                        batch, neuronsH1, neuronsH2, "tanh", activationH2, NUM_RUMS);
-    
-                        if (bestAccuracySoFar > bestAccuracyInTestData) {
-                            bestBatchSize = batch;
-                            bestNumberOfNeuronsH1 = neuronsH1;
-                            bestNumberOfNeuronsH2 = neuronsH2;
-                            bestActivationOnH2 = activationH2;
-                            bestAccuracyInTestData = bestAccuracySoFar;
+                    for (int neuronsH3: numNeurons) {
+                        for (String activationH3 : activation) {
+                            bestAccuracySoFar = run(trainFeatures, trainLabels, testFeatures, testLabels, LEARNING_RATE, THRESHOLD,
+                            batch, neuronsH1, neuronsH2, neuronsH3, "tanh", "tanh", activationH3, NUM_RUMS);
+        
+                            if (bestAccuracySoFar > bestAccuracyInTestData) {
+                                bestBatchSize = batch;
+                                bestNumberOfNeuronsH1 = neuronsH1;
+                                bestNumberOfNeuronsH2 = neuronsH2;
+                                bestNumberOfNeuronsH3 = neuronsH3;
+                                bestActivationOnH3 = activationH3;
+                                bestAccuracyInTestData = bestAccuracySoFar;
+                            }
                         }
+
                     }
                 }
             }
@@ -68,25 +67,26 @@ public class MLPBench {
         System.out.println("Best number of neurons on layer hidden layer 2: "+bestNumberOfNeuronsH2);
         System.out.println("Best activation functions: ");
         System.out.println("    Hidden layer 1: tanh");
-        System.out.println("    Hidden layer 2: "+bestActivationOnH2);
+        System.out.println("    Hidden layer 2: tanh");
+        System.out.println("    Hidden layer 3: " + bestActivationOnH3);
         System.out.println("============================================================");
         System.out.printf("Accuracy on test data with these parameters: %.2f%%%n",bestAccuracyInTestData*100);
         System.out.println("Retraining a model with these parameters to store its predictions");
-        MLP mlp = new MLP(LEARNING_RATE, bestNumberOfNeuronsH1, bestNumberOfNeuronsH2, "tanh", bestActivationOnH2);
+        MLP3 mlp = new MLP3(LEARNING_RATE, bestNumberOfNeuronsH1, bestNumberOfNeuronsH2, bestNumberOfNeuronsH3, "tanh", "tanh", bestActivationOnH3);
         mlp.train(trainFeatures, trainLabels, bestBatchSize, THRESHOLD, 0);
         double accuracyOfModel = evaluateModel(mlp, testFeatures, testLabels, FILEPATH);
         System.out.printf("Accuracy of model: %.2f%%%n", accuracyOfModel*100);
     }
 
     private static double run(double[][] data, double[][] labels, double[][] testData, double[][] testLabels,
-            double learningRate, double threshold, int batchSize, int numNeuronsH1, int numNeuronsH2,
-            String activationH1, String activationH2, int numRuns) throws IOException {
+            double learningRate, double threshold, int batchSize, int numNeuronsH1, int numNeuronsH2, int numNeuronsH3,
+            String activationH1, String activationH2, String activationH3, int numRuns) throws IOException {
 
         double bestPerformingAccuracy = 0.0;
         double accuracy;
 
         for (int i = 0; i < numRuns; i++) {
-            MLP mlp = new MLP(learningRate, numNeuronsH1, numNeuronsH2, activationH1, activationH2);
+            MLP3 mlp = new MLP3(learningRate, numNeuronsH1, numNeuronsH2, numNeuronsH3, activationH1, activationH2, activationH3);
             mlp.train(data, labels, batchSize, threshold, 1);
             accuracy = evaluate(mlp, testData, testLabels);
 
@@ -97,7 +97,7 @@ public class MLPBench {
         return bestPerformingAccuracy;
     }
 
-    private static double evaluate(MLP mlp, double[][] features, double[][] labels) {
+    private static double evaluate(MLP3 mlp, double[][] features, double[][] labels) {
         int correct = 0;
         for (int i = 0; i < features.length; i++) {
             double[] prediction = mlp.forward(features[i]);
@@ -113,7 +113,7 @@ public class MLPBench {
         return accuracy;
     }
 
-    private static double evaluateModel(MLP mlp, double[][] features, double[][] labels, String filepath) throws IOException {
+    private static double evaluateModel(MLP3 mlp, double[][] features, double[][] labels, String filepath) throws IOException {
         int correct = 0;
         File file = new File(filepath);
         BufferedWriter bw = new BufferedWriter(new FileWriter(filepath, true));
@@ -150,3 +150,4 @@ public class MLPBench {
         return index;
     }
 }
+
