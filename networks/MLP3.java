@@ -107,11 +107,20 @@ public class MLP3 {
         return x > 0 ? 1 : 0;
     }
 
+    private static double sigmoid(double x) {
+        return 1.0 / (1.0 + Math.exp(-x));
+    }
+    
+    public static double sigmoidDerivative(double x) {
+        double sigmoidValue = sigmoid(x);
+        return sigmoidValue * (1.0 - sigmoidValue);
+    }
+
     public double[] forward(double[] input) {
         double[] hidden1 = activate(layerOutput(weights1, input, biases1), this.activationH1);
         double[] hidden2 = activate(layerOutput(weights2, hidden1, biases2), this.activationH2);
         double[] hidden3 = activate(layerOutput(weights3, hidden2, biases3), this.activationH3); // New layer
-        double[] output = activate(layerOutput(weights4, hidden3, biases4), "relu");
+        double[] output = activate(layerOutput(weights4, hidden3, biases4), "sigmoid");
         return output;
     }
 
@@ -122,7 +131,9 @@ public class MLP3 {
                 outputs[i] = tanh(inputs[i]);
             } else if (activation.equals("relu")) {
                 outputs[i] = relu(inputs[i]);
-            } 
+            } else {
+                outputs[i] = sigmoid(inputs[i]);
+            }
         }
         return outputs;
     }
@@ -162,7 +173,7 @@ public class MLP3 {
             double[] hidden3output = layerOutput(weights3, hidden2, biases3);
             double[] hidden3 = activate(hidden3output, this.activationH3); 
             double[] outputTotal = layerOutput(weights4, hidden3, biases4);
-            double[] output = activate(outputTotal, "relu");
+            double[] output = activate(outputTotal, "sigmoid");
 
             // Output error
             double[] outputErrors = new double[outputSize];
