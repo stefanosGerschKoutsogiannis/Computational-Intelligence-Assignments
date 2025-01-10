@@ -15,19 +15,19 @@ public class Model2Data {
         double[][] testFeatures = DataUtilities.extractFeatures(testData);
         double[][] testLabels = DataUtilities.extractLabels(testData);
 
-        double LEARNING_RATE = 0.1;
+        double LEARNING_RATE = 0.01;
         double THRESHOLD = 0.1;
 
         int[] batchSize = { 20, 200 };
         int[] numNeurons = { 4, 8, 16 };
         String[] activation = { "tanh", "relu" };
 
-        String FILENAME = "output\\networks\\model2_parameters_performance.csv";
+        String FILENAME = "output\\networks\\model2_parameters_performance_lr.csv";
 
         MLP model;
         double modelAccuracy;
 
-        BufferedWriter bw = DataUtilities.createFile(FILENAME);
+        BufferedWriter bw = DataUtilities.createFileModel2(FILENAME);
 
         for (int batch: batchSize) {
             for (int neuronsH1: numNeurons) {

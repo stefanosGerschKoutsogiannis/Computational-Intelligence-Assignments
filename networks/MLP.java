@@ -13,8 +13,6 @@ public class MLP {
     private static final String ACTIVATION_FUNCTION_H1 = "tanh"; 
     private static final String ACTIVATION_FUNCTION_H2 = "tanh";
 
-    //private static final String FILEPATH = "output\\networks\\prediction_results_2_layers.csv";
-
     private int inputSize, hidden1Size, hidden2Size, outputSize;
     private double[][] weights1, weights2, weights3; 
     private double[] biases1, biases2, biases3;      
@@ -61,7 +59,7 @@ public class MLP {
         double[][] weights = new double[rows][cols];
         for (int i = 0; i < rows; i++) {
             for (int j = 0; j < cols; j++) {
-                weights[i][j] = random.nextDouble() * 2 - 1; // [-1, 1]
+                weights[i][j] = random.nextDouble() * 2 - 1;
             }
         }
         return weights;
@@ -71,7 +69,7 @@ public class MLP {
         Random random = new Random();
         double[] biases = new double[size];
         for (int i = 0; i < size; i++) {
-            biases[i] = random.nextDouble() * 2 - 1; // [-1, 1]
+            biases[i] = random.nextDouble() * 2 - 1;
         }
         return biases;
     }
@@ -101,9 +99,6 @@ public class MLP {
         return sigmoidValue * (1.0 - sigmoidValue);
     }
     
-
-
-    // rename to something like predict
     public double[] forward(double[] input) {
         double[] hidden1 = activate(layerOutput(weights1, input, biases1), this.activationH1);
         double[] hidden2 = activate(layerOutput(weights2, hidden1, biases2), this.activationH2);
@@ -139,7 +134,6 @@ public class MLP {
     public void backprop(double[][] batchInputs, double[][] batchTargets) {
         int batchSize = batchInputs.length;
     
-        // Initialize cumulative gradients for weights and biases
         double[][] weight1Gradients = new double[hidden1Size][inputSize];
         double[][] weight2Gradients = new double[hidden2Size][hidden1Size];
         double[][] weight3Gradients = new double[outputSize][hidden2Size];
@@ -147,13 +141,10 @@ public class MLP {
         double[] bias2Gradients = new double[hidden2Size];
         double[] bias3Gradients = new double[outputSize];
     
-        // Accumulate gradients over all samples in the batch
-        for (int sampleIdx = 0; sampleIdx < batchSize; sampleIdx++) {
-            double[] input = batchInputs[sampleIdx];
-            double[] target = batchTargets[sampleIdx];
+        for (int sample = 0; sample < batchSize; sample++) {
+            double[] input = batchInputs[sample];
+            double[] target = batchTargets[sample];
 
-
-            // Forward pass
             double[] hidden1output = layerOutput(weights1, input, biases1);
             double[] hidden1 = activate(hidden1output, this.activationH1);
             double[] hidden2output = layerOutput(weights2, hidden1, biases2);
@@ -161,13 +152,11 @@ public class MLP {
             double[] outputTotal = layerOutput(weights3, hidden2, biases3);
             double[] output = activate(outputTotal, "sigmoid");
     
-            // Compute output error
             double[] outputErrors = new double[outputSize];
             for (int i = 0; i < outputSize; i++) {
                 outputErrors[i] = output[i] - target[i];
             }
     
-            // Compute hidden2 error
             double[] hidden2Errors = new double[hidden2Size];
             for (int i = 0; i < hidden2Size; i++) {
                 double derivative = this.activationH2.equals("tanh") ? tanhDerivative(hidden2output[i]) : reluDerivative(hidden2output[i]);
@@ -177,7 +166,6 @@ public class MLP {
                 hidden2Errors[i] *= derivative;
             }
     
-            // Compute hidden1 error
             double[] hidden1Errors = new double[hidden1Size];
             for (int i = 0; i < hidden1Size; i++) {
                 double derivative = this.activationH1.equals("tanh") ? tanhDerivative(hidden1output[i]) : reluDerivative(hidden1output[i]);
@@ -187,13 +175,11 @@ public class MLP {
                 hidden1Errors[i] *= derivative;
             }
     
-            // Accumulate weight and bias gradients
             accumulateGradients(weight3Gradients, bias3Gradients, hidden2, outputErrors);
             accumulateGradients(weight2Gradients, bias2Gradients, hidden1, hidden2Errors);
             accumulateGradients(weight1Gradients, bias1Gradients, input, hidden1Errors);
         }
     
-        // Apply averaged gradients to update weights and biases
         updateWeights(weights3, biases3, weight3Gradients, bias3Gradients, batchSize);
         updateWeights(weights2, biases2, weight2Gradients, bias2Gradients, batchSize);
         updateWeights(weights1, biases1, weight1Gradients, bias1Gradients, batchSize);
@@ -223,7 +209,6 @@ public class MLP {
         int epoch = 1;
         while (true) {
             double epochLoss = 0.0;
-            // for each batch
             for (int i = 0; i < data.length; i += batchSize) {
                 int end = Math.min(i + batchSize, data.length);
                 double[][] batchInputs = new double[end - i][];
@@ -232,20 +217,17 @@ public class MLP {
                 System.arraycopy(labels, i, batchLabels, 0, end - i);
     
                 backprop(batchInputs, batchLabels);
-    
-                // calculate loss for this batch
+
                 for (int j = i; j < end; j++) {
                     double[] output = forward(data[j]);
                     for (int k = 0; k < output.length; k++) {
-                        epochLoss += Math.pow(output[k] - labels[j][k], 2); // MSE
+                        epochLoss += Math.pow(output[k] - labels[j][k], 2);
                     }
                 }
             }
-    
-            // mean loss for this epoch
+
             epochLoss /= 2;
     
-            // Εprint epoch - loss
             if (showData == 1) {
                 System.out.printf("Epoch %d, Loss: %.6f%n", epoch, epochLoss);
             }

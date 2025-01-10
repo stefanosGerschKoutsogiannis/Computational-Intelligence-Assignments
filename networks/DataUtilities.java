@@ -47,9 +47,15 @@ public class DataUtilities {
         bw.append(datapoint[0]+","+datapoint[1]+","+correct+"\n");
     }
     
-    public static BufferedWriter createFile(String filepath) throws IOException {
+    public static BufferedWriter createFileModel2(String filepath) throws IOException {
         BufferedWriter bw = new BufferedWriter(new FileWriter(filepath, true));
-        bw.write("learning_rate,batch_size,neurons_H1,neurons_h2,activation_H1,activation_H2,accuracy\n");
+        bw.write("learning_rate,batch_size,neurons_H1,neurons_H2,activation_H1,activation_H2,accuracy\n");
+        return bw;
+    }
+
+    public static BufferedWriter createFileModel3(String filepath) throws IOException {
+        BufferedWriter bw = new BufferedWriter(new FileWriter(filepath, true));
+        bw.write("learning_rate,batch_size,neurons_H1,neurons_H2,neurons_H3,activation_H1,activation_H2,activation_H3,accuracy\n");
         return bw;
     }
 

@@ -1,9 +1,11 @@
 package networks;
 
 import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 
-public class Model3Data {
+public class BestParametersModel2 {
     
     public static void main(String[] args) throws IOException {
 
@@ -15,50 +17,36 @@ public class Model3Data {
         double[][] testFeatures = DataUtilities.extractFeatures(testData);
         double[][] testLabels = DataUtilities.extractLabels(testData);
 
-        double LEARNING_RATE = 0.1;
-        double THRESHOLD = 0.1;
-
-        int[] batchSize = { 20, 200 };
-        int[] numNeurons = { 4, 8, 16 };
-        String[] activation = { "tanh", "relu" };
-
-        String FILENAME = "output\\networks\\model3_parameters_performance.csv";
-
-        MLP3 model;
-        double modelAccuracy;
-
-        BufferedWriter bw = DataUtilities.createFileModel3(FILENAME);
-
-        for (int batch: batchSize) {
-            for (int neuronsH1: numNeurons) {
-                for (int neuronsH2: numNeurons) {
-                    for (int neurons_H3: numNeurons) {
-                        for (String activationH3: activation) {
-                            model = new MLP3(LEARNING_RATE, neuronsH1, neuronsH2, neurons_H3, "tanh", "tanh", activationH3);
-                            model.train(trainFeatures, trainLabels, batch, THRESHOLD, 1);
-                            modelAccuracy = evaluate(model, testFeatures, testLabels);
-                            DataUtilities.storeModel3Parameters(bw, LEARNING_RATE, batch, neuronsH1, neuronsH2, neurons_H3, "tanh", "tanh", activationH3, modelAccuracy, FILENAME);
-                        }
-                    }
-                }
-            }
-        }
-        bw.close();
+        MLP model = new MLP(0.1, 16, 16, "tanh", "tanh");
+        model.train(trainFeatures, trainLabels, 200, 0.1, 1);
+        
+        evaluateModel(model, testFeatures, testLabels, "output\\networks\\model2_predictions.csv");
     }
 
-    private static double evaluate(MLP3 mlp, double[][] features, double[][] labels) {
+    private static double evaluateModel(MLP mlp, double[][] features, double[][] labels, String filepath) throws IOException {
         int correct = 0;
+        File file = new File(filepath);
+        BufferedWriter bw = new BufferedWriter(new FileWriter(filepath, true));
+
+        if (!file.exists()) {
+            bw.write("x1,x2,correct\n");
+        }
+
         for (int i = 0; i < features.length; i++) {
             double[] prediction = mlp.forward(features[i]);
             int predictedClass = argMax(prediction);
             int trueClass = argMax(labels[i]);
             if (predictedClass == trueClass) {
                 correct++;
+                DataUtilities.storeDatapoint(bw, features[i], 1);
+            } else {
+                DataUtilities.storeDatapoint(bw, features[i], 0);
             }
         }
         double accuracy = (double) correct / features.length;
         System.out.printf("Accuracy at test set: %.2f%%%n", accuracy * 100);
                 
+        bw.close();
         return accuracy;
     }
 
@@ -72,4 +60,3 @@ public class Model3Data {
         return index;
     }
 }
-

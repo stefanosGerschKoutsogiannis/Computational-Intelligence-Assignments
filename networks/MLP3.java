@@ -161,9 +161,9 @@ public class MLP3 {
         double[] bias3Gradients = new double[hidden3Size];
         double[] bias4Gradients = new double[outputSize];
 
-        for (int sampleIdx = 0; sampleIdx < batchSize; sampleIdx++) {
-            double[] input = batchInputs[sampleIdx];
-            double[] target = batchTargets[sampleIdx];
+        for (int sample = 0; sample < batchSize; sample++) {
+            double[] input = batchInputs[sample];
+            double[] target = batchTargets[sample];
 
             // Forward pass
             double[] hidden1output = layerOutput(weights1, input, biases1);
@@ -175,13 +175,11 @@ public class MLP3 {
             double[] outputTotal = layerOutput(weights4, hidden3, biases4);
             double[] output = activate(outputTotal, "sigmoid");
 
-            // Output error
             double[] outputErrors = new double[outputSize];
             for (int i = 0; i < outputSize; i++) {
                 outputErrors[i] = output[i] - target[i];
             }
 
-            // Errors for hidden layers
             double[] hidden3Errors = new double[hidden3Size];
             double[] hidden2Errors = new double[hidden2Size];
             double[] hidden1Errors = new double[hidden1Size];
@@ -210,14 +208,12 @@ public class MLP3 {
                 hidden1Errors[i] *= derivative;
             }
 
-            // Accumulate gradients
             accumulateGradients(weight4Gradients, bias4Gradients, hidden3, outputErrors);
             accumulateGradients(weight3Gradients, bias3Gradients, hidden2, hidden3Errors);
             accumulateGradients(weight2Gradients, bias2Gradients, hidden1, hidden2Errors);
             accumulateGradients(weight1Gradients, bias1Gradients, input, hidden1Errors);
         }
 
-        // Update weights and biases
         updateWeights(weights4, biases4, weight4Gradients, bias4Gradients, batchSize);
         updateWeights(weights3, biases3, weight3Gradients, bias3Gradients, batchSize);
         updateWeights(weights2, biases2, weight2Gradients, bias2Gradients, batchSize);
@@ -248,7 +244,6 @@ public class MLP3 {
         int epoch = 1;
         while (true) {
             double epochLoss = 0.0;
-            // for each batch
             for (int i = 0; i < data.length; i += batchSize) {
                 int end = Math.min(i + batchSize, data.length);
                 double[][] batchInputs = new double[end - i][];
@@ -258,16 +253,14 @@ public class MLP3 {
     
                 backprop(batchInputs, batchLabels);
     
-                // calculate loss for this batch
                 for (int j = i; j < end; j++) {
                     double[] output = forward(data[j]);
                     for (int k = 0; k < output.length; k++) {
-                        epochLoss += Math.pow(output[k] - labels[j][k], 2); // MSE
+                        epochLoss += Math.pow(output[k] - labels[j][k], 2);
                     }
                 }
             }
     
-            // mean loss for this epoch
             epochLoss /= 2;
     
             if (show == 1) {
