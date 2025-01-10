@@ -65,6 +65,7 @@ public class MLP3Bench {
         System.out.println("Best batch size: "+bestBatchSize);
         System.out.println("Best number of neurons on layer hidden layer 1: "+bestNumberOfNeuronsH1);
         System.out.println("Best number of neurons on layer hidden layer 2: "+bestNumberOfNeuronsH2);
+        System.out.println("Best number of neurons on hidden layer 3: " + bestNumberOfNeuronsH3);
         System.out.println("Best activation functions: ");
         System.out.println("    Hidden layer 1: tanh");
         System.out.println("    Hidden layer 2: tanh");

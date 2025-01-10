@@ -1,9 +1,6 @@
 package networks;
 
 import java.util.Random;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 
 
@@ -11,12 +8,12 @@ public class MLP {
 
     private static final int INPUT_SIZE = 2; 
     private static final int OUTPUT_SIZE = 4; 
-    private static final int HIDDEN1_SIZE = 4; 
-    private static final int HIDDEN2_SIZE = 4;  
+    private static final int HIDDEN1_SIZE = 16; 
+    private static final int HIDDEN2_SIZE = 16;  
     private static final String ACTIVATION_FUNCTION_H1 = "tanh"; 
-    private static final String ACTIVATION_FUNCTION_H2 = "relu";
+    private static final String ACTIVATION_FUNCTION_H2 = "tanh";
 
-    private static final String FILEPATH = "output\\networks\\prediction_results_2_layers.csv";
+    //private static final String FILEPATH = "output\\networks\\prediction_results_2_layers.csv";
 
     private int inputSize, hidden1Size, hidden2Size, outputSize;
     private double[][] weights1, weights2, weights3; 
@@ -95,12 +92,22 @@ public class MLP {
         return x > 0 ? 1 : 0;
     }
 
+    private static double sigmoid(double x) {
+        return 1.0 / (1.0 + Math.exp(-x));
+    }
+    
+    public static double sigmoidDerivative(double x) {
+        double sigmoidValue = sigmoid(x);
+        return sigmoidValue * (1.0 - sigmoidValue);
+    }
+    
+
 
     // rename to something like predict
     public double[] forward(double[] input) {
         double[] hidden1 = activate(layerOutput(weights1, input, biases1), this.activationH1);
         double[] hidden2 = activate(layerOutput(weights2, hidden1, biases2), this.activationH2);
-        double[] output = activate(layerOutput(weights3, hidden2, biases3), "relu");
+        double[] output = activate(layerOutput(weights3, hidden2, biases3), "sigmoid");
         return output;
     }
     
@@ -111,7 +118,9 @@ public class MLP {
                 outputs[i] = tanh(inputs[i]);
             } else if (activation.equals("relu")) {
                 outputs[i] = relu(inputs[i]);
-            } 
+            } else {
+                outputs[i] = sigmoid(inputs[i]);
+            }
         }
         return outputs;
     }
@@ -150,7 +159,7 @@ public class MLP {
             double[] hidden2output = layerOutput(weights2, hidden1, biases2);
             double[] hidden2 = activate(hidden2output, this.activationH2);
             double[] outputTotal = layerOutput(weights3, hidden2, biases3);
-            double[] output = activate(outputTotal, "relu");
+            double[] output = activate(outputTotal, "sigmoid");
     
             // Compute output error
             double[] outputErrors = new double[outputSize];
@@ -270,7 +279,6 @@ public class MLP {
             mlp.train(trainFeatures, trainLabels, batchSize, threshold, 1);
 
             evaluate(mlp, testFeatures, testLabels);
-            evaluateModel(mlp, testFeatures, testLabels, FILEPATH);
         } catch (IOException e) {
             System.err.println("Error while loading the data " + e.getMessage());
         }
@@ -288,33 +296,6 @@ public class MLP {
         }
         double accuracy = (double) correct / features.length;
         System.out.printf("Accuracy at test set: %.2f%%%n", accuracy * 100);
-    }
-
-    private static double evaluateModel(MLP mlp, double[][] features, double[][] labels, String filepath) throws IOException {
-        int correct = 0;
-        File file = new File(filepath);
-        BufferedWriter bw = new BufferedWriter(new FileWriter(filepath, true));
-
-        if (!file.exists()) {
-            bw.write("x1,x2,correct\n");
-        }
-
-        for (int i = 0; i < features.length; i++) {
-            double[] prediction = mlp.forward(features[i]);
-            int predictedClass = argMax(prediction);
-            int trueClass = argMax(labels[i]);
-            if (predictedClass == trueClass) {
-                correct++;
-                DataUtilities.storeDatapoint(bw, features[i], 1);
-            } else {
-                DataUtilities.storeDatapoint(bw, features[i], 0);
-            }
-        }
-        double accuracy = (double) correct / features.length;
-        System.out.printf("Accuracy at test set: %.2f%%%n", accuracy * 100);
-                
-        bw.close();
-        return accuracy;
     }
 
     private static int argMax(double[] array) {

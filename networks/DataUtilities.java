@@ -3,6 +3,7 @@ package networks;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 
@@ -46,4 +47,19 @@ public class DataUtilities {
         bw.append(datapoint[0]+","+datapoint[1]+","+correct+"\n");
     }
     
+    public static BufferedWriter createFile(String filepath) throws IOException {
+        BufferedWriter bw = new BufferedWriter(new FileWriter(filepath, true));
+        bw.write("learning_rate,batch_size,neurons_H1,neurons_h2,activation_H1,activation_H2,accuracy\n");
+        return bw;
+    }
+
+    public static void storeModel2Parameters(BufferedWriter bw, double learningRate, int batchSize, int numHeuronsH1, int numHeuronsH2,
+        String activationH1, String activationH2, double accuracy, String filepath) throws IOException {
+            bw.append(learningRate+","+batchSize+","+numHeuronsH1+","+numHeuronsH2+","+activationH1+","+activationH2+","+accuracy+"\n");
+    }
+
+    public static void storeModel3Parameters(BufferedWriter bw, double learningRate, int batchSize, int numHeuronsH1, int numHeuronsH2, int numHeuronsH3,
+        String activationH1, String activationH2, String activationH3, double accuracy, String filepath) throws IOException {
+        bw.append(learningRate+","+batchSize+","+numHeuronsH1+","+numHeuronsH2+","+numHeuronsH3+","+activationH1+","+activationH2+","+activationH3+","+accuracy+"\n");
+    }
 }

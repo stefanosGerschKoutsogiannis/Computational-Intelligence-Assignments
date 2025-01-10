@@ -5,14 +5,6 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 
-/*
- * threshlold and learning rate set before
- * for NUM_RUMS=5 aproxx 1 hour of running
- * num_runs=2 approx 10 mimutes
- * 
- * probably wont use this
- */
-
 public class MLPBench {
 
     private static final double LEARNING_RATE = 0.1;
